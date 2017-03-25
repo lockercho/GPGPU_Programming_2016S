@@ -1,5 +1,5 @@
-// F = GMm / (r*r)
-#include <stdio.h>
+#ifndef _PARTICAL_H_
+#define _PARTICAL_H_
 class Particle {
 public:
 	Particle(double x, double y, double w) {
@@ -29,3 +29,5 @@ public:
 		ay += fy / weight * t;
 	}
 };
+
+#endif

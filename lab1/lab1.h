@@ -3,6 +3,7 @@
 #include <memory>
 #include "Perlin2D.h"
 #include "Particle.h"
+using namespace std;
 using std::unique_ptr;
 
 struct Lab1VideoInfo {
