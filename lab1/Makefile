@@ -6,7 +6,7 @@ FFMPEG=/home/peiya/ffmpeg-3.2.4/ffmpeg
 CXX_FLAGS = -std=c++11
 
 all:
-	$(NVCC) $(CXX_FLAGS) main.cu lab1.cu Perlin2D.cpp -o lab1
+	$(NVCC) $(CXX_FLAGS) main.cu lab1.cu Perlin2D.cpp Particle.cpp -o lab1
 
 gravity: 
 	$(CC) $(CXX_FLAGS) gravity.cpp Particle.cpp -o gravity
