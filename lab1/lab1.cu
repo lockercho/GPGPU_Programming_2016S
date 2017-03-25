@@ -9,7 +9,6 @@ void Lab1VideoGenerator::generateNoise(float * noiseArr, float freq) {
 	int noise_width = W * 2;
 	int noise_height = H * 2;
 
-	noiseArr = new float[noise_width * noise_height];
 	// Initialize noise generator
 	noiseMaker->setBaseFrequency(freq);
 
@@ -49,7 +48,6 @@ void Lab1VideoGenerator::generateNoise(float * noiseArr, float freq) {
 
 float Lab1VideoGenerator::getNoise(float * noiseArr, int x, int y) {
 	int noise_width = W * 2;
-	int noise_height = H * 2;
 	return noiseArr[(y + H /2 ) * noise_width + (x + W / 2 )];
 }
 
@@ -60,8 +58,17 @@ void Lab1VideoGenerator::setRotMatrix(int degree) {
 	rotMat[1][1] = cos(degree * M_PI / 180);
 }
 
+void Lab1VideoGenerator::rotate(int &x, int &y) {
+    // normalize it
+    float nx = float(x) / W - 0.5;
+    float ny = float(y) / H - 0.5;
+    x = int((nx * rotMat[0][0] + ny * rotMat[0][1] + 0.5) * W);
+    y = int((nx * rotMat[1][0] + ny * rotMat[1][1] + 0.5) * H);
+}
+
 Lab1VideoGenerator::Lab1VideoGenerator(): impl(new Impl) {
     noiseMaker = new FractalNoise();
+    dense_noise = new float[W*2*H*2];
     // generateNoise(loose_noise, 1);
     generateNoise(dense_noise, 8);
 }
@@ -73,16 +80,21 @@ void Lab1VideoGenerator::get_info(Lab1VideoInfo &info) {
     info.h = H;
     info.n_frame = NFRAME;
     // fps = 24/1 = 24
-    info.fps_n = 24;
+    info.fps_n = fps;
     info.fps_d = 1;
 };
 
 void Lab1VideoGenerator::Generate(uint8_t *yuv) {
 	// define rotation per second
-	setRotMatrix(impl->t);
+	setRotMatrix(impl->t * 24 / fps);
 	for(int i=0 ; i<W*H ; i++) {
-		cudaMemset(yuv+i, getNoise(dense_noise, i % W, i / W) * 255, 1);
+        int x = i % W;
+        int y = i / W;
+        rotate(x, y); 
+        
+		cudaMemset(yuv+i, getNoise(dense_noise, x, y) * 255, 1);
 	}
 	cudaMemset(yuv+W*H, 128, W*H/2);
+    impl->t++;
 }
 

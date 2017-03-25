@@ -13,9 +13,11 @@ class Lab1VideoGenerator {
 	struct Impl;
 	unique_ptr<Impl> impl;
 	FractalNoise * noiseMaker;
-	int W = 640;
+	int W = 480;
 	int H = 480;
-	int NFRAME = 24;
+    int seconds = 10;
+    int fps = 3;
+	int NFRAME = fps * seconds;
 	float rotMat[2][2];
 	float * loose_noise;
 	float * dense_noise;
@@ -27,4 +29,5 @@ public:
 	float getNoise(float * noiseArr, int x, int y); 
 	void setRotMatrix(int degree);
 	void generateNoise(float * noiseArr, float freq);
+    void rotate(int &x, int &y);
 };
