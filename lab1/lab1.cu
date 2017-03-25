@@ -83,6 +83,11 @@ void Lab1VideoGenerator::get_info(Lab1VideoInfo &info) {
 };
 
 void Lab1VideoGenerator::Generate(uint8_t *yuv) {
+	rotateAndFade(yuv);
+}
+
+void Lab1VideoGenerator::rotateAndFade(uint8_t *yuv) {
+	// rotate and fade transition
     int loop = fps * 2;
     float w = float(impl->t % loop) / loop;
     w = w * w;

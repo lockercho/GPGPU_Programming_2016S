@@ -30,4 +30,5 @@ public:
 	void setRotMatrix(int degree);
 	void generateNoise(float * noiseArr, float freq);
     void rotate(int &x, int &y);
+    void rotateAndFade(uint8_t *yuv);
 };
