@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <memory>
 #include "Perlin2D.h"
+#include "Particle.h"
 using std::unique_ptr;
 
 struct Lab1VideoInfo {
