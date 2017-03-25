@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <memory>
+#include <vector>
 #include "Perlin2D.h"
 #include "Particle.h"
 using namespace std;

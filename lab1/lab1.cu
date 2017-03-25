@@ -1,6 +1,15 @@
 #include "lab1.h"
 #include "Particle.h"
 
+void getF(Particle * p1, Particle * p2, double &fx, double &fy) {
+    double dx = p2->posX - p1->posX;
+    double dy = p2->posY - p1->posY;
+    double r2 = dx*dx + dy*dy;
+    double r = sqrt(r2);
+    double F = G * p1->weight * p2->weight / r2;
+    fx = F * dx / r;
+    fy = F * dy / r;
+}
 struct Lab1VideoGenerator::Impl {
     int t = 0;
 };
@@ -71,10 +80,10 @@ Lab1VideoGenerator::Lab1VideoGenerator(): impl(new Impl) {
     generateNoise(dense_noise, 8.0);
 
     // init gravity
-	particles.push_back(Particle(0.0, 0.0, 10));
-	particles.push_back(Particle(1.0, 0.0, 10));
-	particles.push_back(Particle(1.0, 1.0, 10));
-	particles.push_back(Particle(0.0, 1.0, 10));
+    particles.push_back(Particle(0.0, 0.0, 10));
+    particles.push_back(Particle(1.0, 0.0, 10));
+    particles.push_back(Particle(1.0, 1.0, 10));
+    particles.push_back(Particle(0.0, 1.0, 10));
 }
 
 Lab1VideoGenerator::~Lab1VideoGenerator() {}
@@ -89,36 +98,36 @@ void Lab1VideoGenerator::get_info(Lab1VideoInfo &info) {
 };
 
 void Lab1VideoGenerator::Generate(uint8_t *yuv) {
-	// rotateAndFade(yuv);
-	gravitySimulation(yuv);
+    // rotateAndFade(yuv);
+    gravitySimulation(yuv);
 }
 
 void Lab1VideoGenerator::gravitySimulation(uint8_t * yuv) {
 
-	cudaMemset(yuv, 128, W*H);
+    cudaMemset(yuv, 128, W*H);
 
-	for(int i=0; i< particles.size() ; i++) {
-		for(int j=0 ;j< particles.size() ; j++) {
-			if(i == j) continue;
-			double fx, fy;
-			// fprintf(stderr, "ij: %d %d\n", i, j );
-			getF(&particles[i], &particles[j], fx, fy);
-			particles[i].setF(fx, fy, k);
-		}
-	}
+    for(int i=0; i< particles.size() ; i++) {
+        for(int j=0 ;j< particles.size() ; j++) {
+            if(i == j) continue;
+            double fx, fy;
+            // fprintf(stderr, "ij: %d %d\n", i, j );
+            getF(&particles[i], &particles[j], fx, fy);
+            particles[i].setF(fx, fy, impl->t);
+        }
+    }
 
-	for(int i=0; i< particles.size() ; i++) {
-		particles[i].move(1.0 / fps);
-		int index = int(particles[i].posY * H) * W + int(particles[i].posX * W)
-		cudaMemset(yuv + index, 255, W*H);
-	}
-	
-	cudaMemset(yuv+W*H, 128, W*H/2);
-	impl->t++;
+    for(int i=0; i< particles.size() ; i++) {
+        particles[i].move(1.0 / fps);
+        int index = int(particles[i].posY * H) * W + int(particles[i].posX * W);
+        cudaMemset(yuv + index, 255, W*H);
+    }
+
+    cudaMemset(yuv+W*H, 128, W*H/2);
+    impl->t++;
 }
 
 void Lab1VideoGenerator::rotateAndFade(uint8_t *yuv) {
-	// rotate and fade transition
+    // rotate and fade transition
     int loop = fps * 2;
     float w = float(impl->t % loop) / loop;
     w = w * w;

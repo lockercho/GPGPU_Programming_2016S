@@ -1,5 +1,6 @@
 #ifndef _PARTICAL_H_
 #define _PARTICAL_H_
+const double G = 0.000667408;
 class Particle {
 public:
 	Particle(double x, double y, double w) {
