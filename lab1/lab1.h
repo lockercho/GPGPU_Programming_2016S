@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <memory>
-#include "Perlin.h"
+#include "FractalNoise.h"
 using std::unique_ptr;
 
 struct Lab1VideoInfo {
@@ -12,12 +12,16 @@ struct Lab1VideoInfo {
 class Lab1VideoGenerator {
 	struct Impl;
 	unique_ptr<Impl> impl;
-	Perlin * perlin;
-    float * noiseArr;
+	FractalNoise * noiseMaker;
+	int W = 640;
+	int H = 480;
+	int NFRAME = 24;
+	float rotMat[2][2];
+	float * loose_noise;
+	float * dense_noise;
 public:
 	Lab1VideoGenerator();
 	~Lab1VideoGenerator();
 	void get_info(Lab1VideoInfo &info);
 	void Generate(uint8_t *yuv);
 };
-
