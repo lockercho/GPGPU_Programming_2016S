@@ -21,6 +21,7 @@ class Lab1VideoGenerator {
 	float rotMat[2][2];
 	float * loose_noise;
 	float * dense_noise;
+	vector<Particle> particles;
 public:
 	Lab1VideoGenerator();
 	~Lab1VideoGenerator();
@@ -31,4 +32,5 @@ public:
 	void generateNoise(float * noiseArr, float freq);
     void rotate(int &x, int &y);
     void rotateAndFade(uint8_t *yuv);
+    void gravitySimulation(uint8_t * yuv);
 };

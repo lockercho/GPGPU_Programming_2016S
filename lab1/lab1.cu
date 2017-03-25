@@ -1,5 +1,5 @@
 #include "lab1.h"
-
+#include "Particle.h"
 
 struct Lab1VideoGenerator::Impl {
     int t = 0;
@@ -69,6 +69,12 @@ Lab1VideoGenerator::Lab1VideoGenerator(): impl(new Impl) {
     dense_noise = new float[W*2*H*2];
     generateNoise(loose_noise, 1.0);
     generateNoise(dense_noise, 8.0);
+
+    // init gravity
+	particles.push_back(Particle(0.0, 0.0, 10));
+	particles.push_back(Particle(1.0, 0.0, 10));
+	particles.push_back(Particle(1.0, 1.0, 10));
+	particles.push_back(Particle(0.0, 1.0, 10));
 }
 
 Lab1VideoGenerator::~Lab1VideoGenerator() {}
@@ -83,7 +89,32 @@ void Lab1VideoGenerator::get_info(Lab1VideoInfo &info) {
 };
 
 void Lab1VideoGenerator::Generate(uint8_t *yuv) {
-	rotateAndFade(yuv);
+	// rotateAndFade(yuv);
+	gravitySimulation(yuv);
+}
+
+void Lab1VideoGenerator::gravitySimulation(uint8_t * yuv) {
+
+	cudaMemset(yuv, 128, W*H);
+
+	for(int i=0; i< particles.size() ; i++) {
+		for(int j=0 ;j< particles.size() ; j++) {
+			if(i == j) continue;
+			double fx, fy;
+			// fprintf(stderr, "ij: %d %d\n", i, j );
+			getF(&particles[i], &particles[j], fx, fy);
+			particles[i].setF(fx, fy, k);
+		}
+	}
+
+	for(int i=0; i< particles.size() ; i++) {
+		particles[i].move(1.0 / fps);
+		int index = int(particles[i].posY * H) * W + int(particles[i].posX * W)
+		cudaMemset(yuv + index, 255, W*H);
+	}
+	
+	cudaMemset(yuv+W*H, 128, W*H/2);
+	impl->t++;
 }
 
 void Lab1VideoGenerator::rotateAndFade(uint8_t *yuv) {
