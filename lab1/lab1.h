@@ -24,4 +24,7 @@ public:
 	~Lab1VideoGenerator();
 	void get_info(Lab1VideoInfo &info);
 	void Generate(uint8_t *yuv);
+	float getNoise(float * noiseArr, int x, int y); 
+	void setRotMatrix(int degree);
+	void generateNoise(float * noiseArr, float freq);
 };

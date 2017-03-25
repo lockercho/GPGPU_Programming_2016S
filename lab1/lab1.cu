@@ -24,7 +24,7 @@ void Lab1VideoGenerator::generateNoise(float * noiseArr, float freq) {
 		
 		noise = noiseMaker->noise(float(x)*invWidth, float(y)*invHeight, 0.72);
 
-		noiseArray[y*noise_width + x] = noise;
+		noiseArr[y*noise_width + x] = noise;
 
 		// Keep track of minimum and maximum noise values
 		if (noise < min) min = noise;
@@ -37,22 +37,20 @@ void Lab1VideoGenerator::generateNoise(float * noiseArr, float freq) {
 	for (int x=0; x<noise_width; ++x) for (int y=0; y<noise_height; ++y) {
 		
 		// "Stretch" the gaussian distribution of noise values to better fill -1 to 1 range.
-		noise = noiseArray[y*noise_width + x];
+		noise = noiseArr[y*noise_width + x];
 		noise = -1.0f + 2.0f*(noise - min)*temp;
 		// Remap to RGB friendly colour values in range between 0 and 1.
 		noise += 1.0f;
 		noise *= 0.5f;
-		noiseArray[y*noise_width + x] = noise;
-	}
-
-	
+		noiseArr[y*noise_width + x] = noise;
+	}	
 }
 
 
-float Lab1VideoGenerator::getNoise(float * noiseArray, int x, int y) {
+float Lab1VideoGenerator::getNoise(float * noiseArr, int x, int y) {
 	int noise_width = W * 2;
 	int noise_height = H * 2;
-	return noiseArray[(y + H /2 ) * noise_width + (x + W / 2 )];
+	return noiseArr[(y + H /2 ) * noise_width + (x + W / 2 )];
 }
 
 void Lab1VideoGenerator::setRotMatrix(int degree) {
