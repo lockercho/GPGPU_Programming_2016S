@@ -16,10 +16,10 @@ class Lab1VideoGenerator {
 	struct Impl;
 	unique_ptr<Impl> impl;
 	Perlin2D * noiseMaker;
-	int W = 480;
+	int W = 640;
 	int H = 480;
-    int seconds = 10;
-    int fps = 3;
+    int seconds = 60;
+    int fps = 10;
 	int NFRAME = fps * seconds;
 	float rotMat[2][2];
 	float * loose_noise;

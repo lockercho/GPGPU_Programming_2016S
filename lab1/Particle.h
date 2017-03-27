@@ -1,19 +1,19 @@
 #ifndef _PARTICAL_H_
 #define _PARTICAL_H_
-const double G = 0.000667408;
+const double G = 0.000000667408;
 class Particle {
 public:
 	Particle(double x, double y, double w) {
 		posX = x, posY = y, weight = w;
-		fx = fy = ax = ay = 0;
+		fx = fy = sx = sy = 0;
 	}
 	double posX;
 	double posY;
 	double weight;
 	double fx;
 	double fy;
-	double ax;
-	double ay;
+	double sx;
+	double sy;
 	int iter = -1;
 	void setF(double _fx, double _fy, int _iter) {
 		if(_iter > iter) {
@@ -24,10 +24,11 @@ public:
 		fy += _fy;
 	}
 	void move(double t) {
-		posX += ax * t + fx / weight * t * t / 2;
-		posY += ay * t + fy / weight * t * t / 2;
-		ax += fx / weight * t;
-		ay += fy / weight * t;
+		posX += sx * t + fx / weight * t * t / 2;
+		posY += sy * t + fy / weight * t * t / 2;
+        // maintain current speed
+		sx += fx / weight * t;
+		sy += fy / weight * t;
 	}
 };
 

@@ -80,10 +80,24 @@ Lab1VideoGenerator::Lab1VideoGenerator(): impl(new Impl) {
     generateNoise(dense_noise, 8.0);
 
     // init gravity
+    int w_size = 2;
+    int h_size = 1;
+    for(int i=1 ; i<=w_size ; i++) {
+        for(int j=1; j<=h_size; j++) {
+            double x = 1.0 / w_size * i;
+            double y = 1.0 / h_size * j;
+            double w = pow(2, (w_size / 2 - abs(w_size/2-i) + h_size / 2 - abs(h_size/2 -j)) / 3 );
+           fprintf(stderr, "xyw: %f %f %f\n", x, y, w);
+            particles.push_back(Particle(x, y, w));
+        }
+    }
+    //exit(0);
+    /*
     particles.push_back(Particle(0.0, 0.0, 10));
     particles.push_back(Particle(1.0, 0.0, 10));
     particles.push_back(Particle(1.0, 1.0, 10));
     particles.push_back(Particle(0.0, 1.0, 10));
+    */
 }
 
 Lab1VideoGenerator::~Lab1VideoGenerator() {}
@@ -103,14 +117,12 @@ void Lab1VideoGenerator::Generate(uint8_t *yuv) {
 }
 
 void Lab1VideoGenerator::gravitySimulation(uint8_t * yuv) {
-
-    cudaMemset(yuv, 128, W*H);
+    cudaMemset(yuv, 0, W*H);
 
     for(int i=0; i< particles.size() ; i++) {
         for(int j=0 ;j< particles.size() ; j++) {
             if(i == j) continue;
             double fx, fy;
-            // fprintf(stderr, "ij: %d %d\n", i, j );
             getF(&particles[i], &particles[j], fx, fy);
             particles[i].setF(fx, fy, impl->t);
         }
@@ -118,8 +130,18 @@ void Lab1VideoGenerator::gravitySimulation(uint8_t * yuv) {
 
     for(int i=0; i< particles.size() ; i++) {
         particles[i].move(1.0 / fps);
-        int index = int(particles[i].posY * H) * W + int(particles[i].posX * W);
-        cudaMemset(yuv + index, 255, W*H);
+        int x = int(particles[i].posX * W);
+        int y = int(particles[i].posY * H);
+        // if out of range, continue
+        if(x<0 || x>W || y<0 || y>H) {
+            //continue;
+        }
+        int index = y * W + x;
+        /*
+        fprintf(stderr, "Pos: %f %f\n", particles[i].posX, particles[i].posY);
+        fprintf(stderr, "Real Pos: %d %d %d\n\n", x, y, index);
+        */
+        cudaMemset(yuv + index, 255, 1);
     }
 
     cudaMemset(yuv+W*H, 128, W*H/2);
