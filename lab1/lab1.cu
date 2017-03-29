@@ -7,6 +7,7 @@ bool isCollision(Particle * p1, Particle * p2) {
     double dy = p2->posY - p1->posY;
     double r2 = dx*dx + dy*dy;
     double r = sqrt(r2);
+//    fprintf(stderr, "r: %f\n", r);
     return (r <= p1-> radius || r <= p2-> radius);
 }
 
@@ -134,6 +135,7 @@ void Lab1VideoGenerator::gravitySimulation(uint8_t * yuv) {
 
             // check collision
             if(isCollision(&particles[i], &particles[j])) {
+                fprintf(stderr, "collision\n");
                 particles[i].clearF();
                 // elastic collision
                 Particle p1 = particles[i], p2 = particles[j];
@@ -144,6 +146,7 @@ void Lab1VideoGenerator::gravitySimulation(uint8_t * yuv) {
                 particles[i].setS(sx, sy);
             } else {
                 // check gravity
+                //fprintf(stderr, "Not collision\n");
                 double gfx = 0, gfy = 0;
                 getF(&particles[i], &particles[j], gfx, gfy);
                 particles[i].setF(gfx, gfy, impl->t);
