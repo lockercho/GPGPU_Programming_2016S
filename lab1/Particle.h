@@ -11,7 +11,7 @@ public:
 	}
 	double posX;
 	double posY;
-	double rarius = 3;
+	double radius = 3;
 	double weight;
 	double fx;
 	double fy;

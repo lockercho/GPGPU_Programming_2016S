@@ -133,7 +133,7 @@ void Lab1VideoGenerator::gravitySimulation(uint8_t * yuv) {
             if(i == j) continue;
 
             // check collision
-            if(isCollision(particles[i], particles[j])) {
+            if(isCollision(&particles[i], &particles[j])) {
                 particles[i].clearF();
                 // elastic collision
                 Particle p1 = particles[i], p2 = particles[j];
@@ -146,7 +146,7 @@ void Lab1VideoGenerator::gravitySimulation(uint8_t * yuv) {
                 // check gravity
                 double gfx = 0, gfy = 0;
                 getF(&particles[i], &particles[j], gfx, gfy);
-                particles[i].setF(gfx + cfx, gfy + cfy, impl->t);
+                particles[i].setF(gfx, gfy, impl->t);
             }
         }
     }
