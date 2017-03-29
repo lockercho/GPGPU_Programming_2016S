@@ -1,4 +1,5 @@
 #include "lab1.h"
+#include "const.h"
 #include "Particle.h"
 
 void getF(Particle * p1, Particle * p2, double &fx, double &fy) {
@@ -80,8 +81,8 @@ Lab1VideoGenerator::Lab1VideoGenerator(): impl(new Impl) {
     generateNoise(dense_noise, 8.0);
 
     // init gravity
-    int w_size = 2;
-    int h_size = 1;
+    int w_size = W_SIZE;
+    int h_size = H_SIZE;
     for(int i=1 ; i<=w_size ; i++) {
         for(int j=1; j<=h_size; j++) {
             double x = 1.0 / w_size * i;

@@ -4,6 +4,7 @@
 #include <vector>
 #include "Perlin2D.h"
 #include "Particle.h"
+#include "const.h"
 using namespace std;
 using std::unique_ptr;
 
@@ -16,10 +17,10 @@ class Lab1VideoGenerator {
 	struct Impl;
 	unique_ptr<Impl> impl;
 	Perlin2D * noiseMaker;
-	int W = 640;
-	int H = 480;
-    int seconds = 60;
-    int fps = 10;
+	int W = WIDTH;
+	int H = HEIGHT;
+    int seconds = SECONDS;
+    int fps = FPS;
 	int NFRAME = fps * seconds;
 	float rotMat[2][2];
 	float * loose_noise;

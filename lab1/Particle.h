@@ -1,6 +1,8 @@
 #ifndef _PARTICAL_H_
 #define _PARTICAL_H_
-const double G = 0.000000667408;
+
+#include "const.h"
+
 class Particle {
 public:
 	Particle(double x, double y, double w) {
