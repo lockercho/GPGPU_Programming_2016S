@@ -11,6 +11,7 @@ public:
 	}
 	double posX;
 	double posY;
+	double rarius = 3;
 	double weight;
 	double fx;
 	double fy;
@@ -24,6 +25,16 @@ public:
 		}
 		fx += _fx;
 		fy += _fy;
+	}
+
+	void clearF() {
+		fx = 0;
+		fy = 0;
+	}
+
+	void setS(double _sx, double _sy) {
+		sx = _sx;
+		sy = _sy;
 	}
 	void move(double t) {
 		posX += sx * t + fx / weight * t * t / 2;

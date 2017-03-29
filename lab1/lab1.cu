@@ -2,6 +2,14 @@
 #include "const.h"
 #include "Particle.h"
 
+bool isCollision(Particle * p1, Particle * p2) {
+    double dx = p2->posX - p1->posX;
+    double dy = p2->posY - p1->posY;
+    double r2 = dx*dx + dy*dy;
+    double r = sqrt(r2);
+    return (r <= p1-> radius || r <= p2-> radius);
+}
+
 void getF(Particle * p1, Particle * p2, double &fx, double &fy) {
     double dx = p2->posX - p1->posX;
     double dy = p2->posY - p1->posY;
@@ -123,9 +131,23 @@ void Lab1VideoGenerator::gravitySimulation(uint8_t * yuv) {
     for(int i=0; i< particles.size() ; i++) {
         for(int j=0 ;j< particles.size() ; j++) {
             if(i == j) continue;
-            double fx, fy;
-            getF(&particles[i], &particles[j], fx, fy);
-            particles[i].setF(fx, fy, impl->t);
+
+            // check collision
+            if(isCollision(particles[i], particles[j])) {
+                particles[i].clearF();
+                // elastic collision
+                Particle p1 = particles[i], p2 = particles[j];
+                double sx = (p1.sx * (p1.weight - p2.weight) + 2 * p2.weight * p2.sx ) 
+                                / (p1.weight + p2.weight); 
+                double sy = (p1.sy * (p1.weight - p2.weight) + 2 * p2.weight * p2.sy ) 
+                                / (p1.weight + p2.weight); 
+                particles[i].setS(sx, sy);
+            } else {
+                // check gravity
+                double gfx = 0, gfy = 0;
+                getF(&particles[i], &particles[j], gfx, gfy);
+                particles[i].setF(gfx + cfx, gfy + cfy, impl->t);
+            }
         }
     }
 
