@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
-#include "Perlin2D.h"
+#include "Perlin3D.h"
 #include "Particle.h"
 #include "const.h"
 using namespace std;
@@ -26,6 +26,7 @@ class Lab1VideoGenerator {
 	float * loose_noise;
 	float * dense_noise;
 	vector<Particle> particles;
+	int freq = 8;
 public:
 	Lab1VideoGenerator();
 	~Lab1VideoGenerator();

@@ -83,24 +83,20 @@ void Lab1VideoGenerator::rotate(int &x, int &y) {
 }
 
 Lab1VideoGenerator::Lab1VideoGenerator(): impl(new Impl) {
-    noiseMaker = new Perlin2D();
-    loose_noise = new float[W*2*H*2];
-    dense_noise = new float[W*2*H*2];
-    generateNoise(loose_noise, 1.0);
-    generateNoise(dense_noise, 8.0);
+    noiseMaker = new Perlin3D();
 
     // init gravity
-    int w_size = W_SIZE;
-    int h_size = H_SIZE;
-    for(int i=1 ; i<=w_size ; i++) {
-        for(int j=1; j<=h_size; j++) {
-            double x = (double) W / w_size * i;
-            double y = (double) H / h_size * j;
-            double w = pow(2, (w_size / 2 - abs(w_size/2-i) + h_size / 2 - abs(h_size/2 -j)) / 3 );
-            fprintf(stderr, "xyw: %f %f %f\n", x, y, w);
-            particles.push_back(Particle(x, y, w));
-        }
-    }
+    // int w_size = W_SIZE;
+    // int h_size = H_SIZE;
+    // for(int i=1 ; i<=w_size ; i++) {
+    //     for(int j=1; j<=h_size; j++) {
+    //         double x = (double) W / w_size * i;
+    //         double y = (double) H / h_size * j;
+    //         double w = pow(2, (w_size / 2 - abs(w_size/2-i) + h_size / 2 - abs(h_size/2 -j)) / 3 );
+    //         fprintf(stderr, "xyw: %f %f %f\n", x, y, w);
+    //         particles.push_back(Particle(x, y, w));
+    //     }
+    // }
     //exit(0);
     /*
     particles.push_back(Particle(0.0, 0.0, 10));
@@ -122,8 +118,25 @@ void Lab1VideoGenerator::get_info(Lab1VideoInfo &info) {
 };
 
 void Lab1VideoGenerator::Generate(uint8_t *yuv) {
-    // rotateAndFade(yuv);
-    gravitySimulation(yuv);
+    intoTheFog(yuv);
+    // gravitySimulation(yuv);
+}
+
+void Lab1VideoGenerator::intoTheFog(uint8_t *yuv) {
+    // rotate and fade transition
+    int loop = fps * 2;
+    float w = float(impl->t % loop) / loop;
+    w = w * w;
+    // int direction = impl->t / loop % 2;
+    setRotMatrix(impl->t * 24 / fps);
+    for(int i=0 ; i<W*H ; i++) {
+        int x = i % W;
+        int y = i / W;
+        float color = noiseMaker->getFractal(x, y, z, freq) * 255;
+        cudaMemset(yuv+i, color, 1);
+    }
+    cudaMemset(yuv+W*H, 128, W*H/2);
+    impl->t++;
 }
 
 void Lab1VideoGenerator::gravitySimulation(uint8_t * yuv) {
@@ -173,6 +186,7 @@ void Lab1VideoGenerator::gravitySimulation(uint8_t * yuv) {
     cudaMemset(yuv+W*H, 128, W*H/2);
     impl->t++;
 }
+
 
 void Lab1VideoGenerator::rotateAndFade(uint8_t *yuv) {
     // rotate and fade transition
