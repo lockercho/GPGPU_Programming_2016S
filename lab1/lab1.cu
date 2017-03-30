@@ -125,10 +125,11 @@ void Lab1VideoGenerator::Generate(uint8_t *yuv) {
 void Lab1VideoGenerator::intoTheFog(uint8_t *yuv) {
     // rotate and fade transition
     // int loop = fps * 2;  
-    // float w = float(impl->t % loop) / loop;
+    float w = float(impl->t % loop) / loop;
     // w = w * w;
-    // int direction = impl->t / loop % 2;
+    int direction = impl->t / loop % 2;
     // setRotMatrix(impl->t * 24 / fps);
+    int z = impl-> t % W;
     for(int i=0 ; i<W*H ; i++) {
         int x = i % W;
         int y = i / W;
