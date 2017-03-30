@@ -1,13 +1,14 @@
 #include "lab1.h"
 #include "const.h"
 #include "Particle.h"
+#include "Perlin3D.h"
 
 bool isCollision(Particle * p1, Particle * p2) {
     double dx = p2->posX - p1->posX;
     double dy = p2->posY - p1->posY;
     double r2 = dx*dx + dy*dy;
     double r = sqrt(r2);
-//    fprintf(stderr, "r: %f\n", r);
+    //    fprintf(stderr, "r: %f\n", r);
     return (r <= p1-> radius || r <= p2-> radius);
 }
 
@@ -25,8 +26,9 @@ struct Lab1VideoGenerator::Impl {
 };
 
 void Lab1VideoGenerator::generateNoise(float * noiseArr, float freq) {
-    int noise_width = W * 2;
-    int noise_height = H * 2;
+    /*
+       int noise_width = W * 2;
+       int noise_height = H * 2;
 
     // Generate a noise value for each pixel
     float invWidth = 1.0f / float(noise_width);
@@ -37,13 +39,13 @@ void Lab1VideoGenerator::generateNoise(float * noiseArr, float freq) {
 
     for (int x=0; x<noise_width; ++x) for (int y=0; y<noise_height; ++y) {
 
-        noise = noiseMaker->getFractal(float(x)*invWidth, float(y)*invHeight, 0, freq);
+    noise = noiseMaker->getFractal(float(x)*invWidth, float(y)*invHeight, 0, freq);
 
-        noiseArr[y*noise_width + x] = noise;
+    noiseArr[y*noise_width + x] = noise;
 
-        // Keep track of minimum and maximum noise values
-        if (noise < min) min = noise;
-        if (noise > max) max = noise;
+    // Keep track of minimum and maximum noise values
+    if (noise < min) min = noise;
+    if (noise > max) max = noise;
     }
 
     // Convert noise values to pixel colour values.
@@ -51,14 +53,14 @@ void Lab1VideoGenerator::generateNoise(float * noiseArr, float freq) {
 
     for (int x=0; x<noise_width; ++x) for (int y=0; y<noise_height; ++y) {
 
-        // "Stretch" the gaussian distribution of noise values to better fill -1 to 1 range.
-        noise = noiseArr[y*noise_width + x];
-        noise = -1.0f + 2.0f*(noise - min)*temp;
-        // Remap to RGB friendly colour values in range between 0 and 1.
-        noise += 1.0f;
-        noise *= 0.5f;
-        noiseArr[y*noise_width + x] = noise;
-    }	
+    // "Stretch" the gaussian distribution of noise values to better fill -1 to 1 range.
+    noise = noiseArr[y*noise_width + x];
+    noise = -1.0f + 2.0f*(noise - min)*temp;
+    // Remap to RGB friendly colour values in range between 0 and 1.
+    noise += 1.0f;
+    noise *= 0.5f;
+    noiseArr[y*noise_width + x] = noise;
+    }*/
 }
 
 
@@ -99,11 +101,11 @@ Lab1VideoGenerator::Lab1VideoGenerator(): impl(new Impl) {
     // }
     //exit(0);
     /*
-    particles.push_back(Particle(0.0, 0.0, 10));
-    particles.push_back(Particle(1.0, 0.0, 10));
-    particles.push_back(Particle(1.0, 1.0, 10));
-    particles.push_back(Particle(0.0, 1.0, 10));
-    */
+       particles.push_back(Particle(0.0, 0.0, 10));
+       particles.push_back(Particle(1.0, 0.0, 10));
+       particles.push_back(Particle(1.0, 1.0, 10));
+       particles.push_back(Particle(0.0, 1.0, 10));
+     */
 }
 
 Lab1VideoGenerator::~Lab1VideoGenerator() {}
@@ -124,20 +126,36 @@ void Lab1VideoGenerator::Generate(uint8_t *yuv) {
 
 void Lab1VideoGenerator::intoTheFog(uint8_t *yuv) {
     // rotate and fade transition
-    // int loop = fps * 2;  
+    int loop = fps * 2;  
     float w = float(impl->t % loop) / loop;
     // w = w * w;
     int direction = impl->t / loop % 2;
     // setRotMatrix(impl->t * 24 / fps);
-    int z = impl-> t % W;
+    float z = float(impl-> t % W) / W;
     for(int i=0 ; i<W*H ; i++) {
-        int x = i % W;
-        int y = i / W;
-        float color = noiseMaker->getFractal(x, y, z, freq) * 255;
-        cudaMemset(yuv+i, color, 1);
+        float x = float(i % W) / W;
+        float y = float(i / W) / H;
+        float noise = noiseMaker->getFractal(x, y, z, freq);
+        noise += 1.0f;
+        noise *= 0.5f;
+        float R = (1.0 - noise) * 255;
+        float B = (1.0 - noise) * 255 + 100;
+        float CG = (1.0 - noise) * 255 + 30;
+        if(CG > 255) CG = 255;
+        if(B > 255) B = 255;
+
+        //fprintf(stderr, "xyz: %f %f %f %f %f\n", x, y, z, freq, noise);
+        int Y = 0.299 * R + 0.587 * CG + 0.114 * B;
+        int U = - 0.169 * R -  0.331 * CG + 0.500 * B + 128;
+        int V = 0.500 * R - 0.419 * CG - 0.081 * B + 128;
+        cudaMemset(yuv+i, Y, 1);
+        if((i%W) % 2 == 0 && (i/W) % 2 == 0) {
+            cudaMemset(yuv+W*H+i/2, U, 1);
+            cudaMemset(yuv+W*H+i/2, V, 1);
+        }
     }
-    cudaMemset(yuv+W*H, 128, W*H/2);
-    impl->t++;
+    // cudaMemset(yuv+W*H, 128, W*H/2);
+    impl->t+=5;
 }
 
 void Lab1VideoGenerator::gravitySimulation(uint8_t * yuv) {
@@ -154,9 +172,9 @@ void Lab1VideoGenerator::gravitySimulation(uint8_t * yuv) {
                 // elastic collision
                 Particle p1 = particles[i], p2 = particles[j];
                 double sx = (p1.sx * (p1.weight - p2.weight) + 2 * p2.weight * p2.sx ) 
-                                / (p1.weight + p2.weight); 
+                    / (p1.weight + p2.weight); 
                 double sy = (p1.sy * (p1.weight - p2.weight) + 2 * p2.weight * p2.sy ) 
-                                / (p1.weight + p2.weight); 
+                    / (p1.weight + p2.weight); 
                 particles[i].setS(sx, sy);
             } else {
                 // check gravity
@@ -178,9 +196,9 @@ void Lab1VideoGenerator::gravitySimulation(uint8_t * yuv) {
         }
         int index = y * W + x;
         /*
-        fprintf(stderr, "Pos: %f %f\n", particles[i].posX, particles[i].posY);
-        fprintf(stderr, "Real Pos: %d %d %d\n\n", x, y, index);
-        */
+           fprintf(stderr, "Pos: %f %f\n", particles[i].posX, particles[i].posY);
+           fprintf(stderr, "Real Pos: %d %d %d\n\n", x, y, index);
+         */
         cudaMemset(yuv + index, 255, 1);
     }
 
