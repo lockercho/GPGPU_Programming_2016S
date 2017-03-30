@@ -37,7 +37,7 @@ void Lab1VideoGenerator::generateNoise(float * noiseArr, float freq) {
 
     for (int x=0; x<noise_width; ++x) for (int y=0; y<noise_height; ++y) {
 
-        noise = noiseMaker->getFractal(float(x)*invWidth, float(y)*invHeight, freq);
+        noise = noiseMaker->getFractal(float(x)*invWidth, float(y)*invHeight, 0, freq);
 
         noiseArr[y*noise_width + x] = noise;
 
@@ -124,11 +124,11 @@ void Lab1VideoGenerator::Generate(uint8_t *yuv) {
 
 void Lab1VideoGenerator::intoTheFog(uint8_t *yuv) {
     // rotate and fade transition
-    int loop = fps * 2;
-    float w = float(impl->t % loop) / loop;
-    w = w * w;
+    // int loop = fps * 2;  
+    // float w = float(impl->t % loop) / loop;
+    // w = w * w;
     // int direction = impl->t / loop % 2;
-    setRotMatrix(impl->t * 24 / fps);
+    // setRotMatrix(impl->t * 24 / fps);
     for(int i=0 ; i<W*H ; i++) {
         int x = i % W;
         int y = i / W;

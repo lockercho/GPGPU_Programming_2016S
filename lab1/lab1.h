@@ -16,7 +16,7 @@ struct Lab1VideoInfo {
 class Lab1VideoGenerator {
 	struct Impl;
 	unique_ptr<Impl> impl;
-	Perlin2D * noiseMaker;
+	Perlin3D * noiseMaker;
 	int W = WIDTH;
 	int H = HEIGHT;
     int seconds = SECONDS;
@@ -38,4 +38,5 @@ public:
     void rotate(int &x, int &y);
     void rotateAndFade(uint8_t *yuv);
     void gravitySimulation(uint8_t * yuv);
+    void intoTheFog(uint8_t *yuv);
 };
