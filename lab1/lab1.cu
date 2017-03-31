@@ -228,7 +228,6 @@ void Lab1VideoGenerator::rotateAndFade(uint8_t *yuv) {
     w = w * w;
     int direction = impl->t / loop % 2;
     setRotMatrix(impl->t * 24 / fps);
-    int r1 = 242, r2 = 124, g1 = 177, g2 = 162, b1 = 103, b2 = 248; 
     for(int i=0 ; i<W*H ; i++) {
         int x = i % W;
         int y = i / W;
@@ -240,10 +239,11 @@ void Lab1VideoGenerator::rotateAndFade(uint8_t *yuv) {
             color = (1.0 - w) * n1 + w * n2;
         else 
             color = w * n1 + (1.0 - w) * n2;
-        float p = float(impl->t) / NFRAME; 
-        int r = int((1.0-p) * r1 + p * r2 + 0.5) * 255 * color;
-        int g = int((1.0-p) * g1 + p * g2 + 0.5) * 255 * color;
-        int b = int((1.0-p) * b1 + p * b2 + 0.5) * 255 * color;
+        int r, g, b;
+        r = g = b = color * 255;
+        if(color < 0.5) {
+            b = 255;
+        }
 
         int Y = 0.299 * r + 0.587 * g + 0.114 * b;
         int U = - 0.169 * r -  0.331 * g + 0.500 * b + 128;
@@ -256,9 +256,9 @@ void Lab1VideoGenerator::rotateAndFade(uint8_t *yuv) {
             cudaMemset(yuv+W*H+index, U, 1);
             cudaMemset(yuv+int(W*H *1.25)+ index, V, 1);
         }
-        cudaMemset(yuv+i, color * 255, 1);
+        // cudaMemset(yuv+i, color * 255, 1);
     }
-    cudaMemset(yuv+W*H, 128, W*H/2);
+    // cudaMemset(yuv+W*H, 128, W*H/2);
     impl->t++;
 }
 
