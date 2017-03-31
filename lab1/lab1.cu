@@ -219,7 +219,7 @@ void Lab1VideoGenerator::gravitySimulation(uint8_t * yuv) {
 
 void Lab1VideoGenerator::rotateAndFade(uint8_t *yuv) {
     // rotate and fade transition
-    int loop = fps * 2;
+    int loop = fps;
     float w = float(impl->t % loop) / loop;
     w = w * w;
     int direction = impl->t / loop % 2;
