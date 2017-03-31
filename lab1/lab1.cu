@@ -135,6 +135,7 @@ void Lab1VideoGenerator::intoTheFog(uint8_t *yuv) {
     for(int i=0 ; i<W*H ; i++) {
         int ix = i % W;
         int iy = i / W;
+        rotate(ix, iy); 
         float x = float(ix) / W;
         float y = float(iy) / H;
         float noise = noiseMaker->getFractal(x, y, z, freq);
