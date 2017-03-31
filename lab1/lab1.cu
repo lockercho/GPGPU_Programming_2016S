@@ -240,9 +240,9 @@ void Lab1VideoGenerator::rotateAndFade(uint8_t *yuv) {
         else 
             color = w * n1 + (1.0 - w) * n2;
 
-        float R = (1.0 - color) * 255;
-        float B = (1.0 - color) * 255 + 100;
-        float CG = (1.0 - color) * 255 + 30;
+        float R = (1.0 - color) * 155;
+        float B = (1.0 - color) * 155 + 100;
+        float CG = (1.0 - color) * 155 + 30;
         if(CG > 255) CG = 255;
         if(B > 255) B = 255;
 
