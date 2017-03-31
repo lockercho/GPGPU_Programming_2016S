@@ -26,7 +26,7 @@ struct Lab1VideoGenerator::Impl {
 };
 
 void Lab1VideoGenerator::generateNoise(float * noiseArr, float freq) {
-    /*
+    
        int noise_width = W * 2;
        int noise_height = H * 2;
 
@@ -60,7 +60,7 @@ void Lab1VideoGenerator::generateNoise(float * noiseArr, float freq) {
     noise += 1.0f;
     noise *= 0.5f;
     noiseArr[y*noise_width + x] = noise;
-    }*/
+    }
 }
 
 
@@ -86,6 +86,10 @@ void Lab1VideoGenerator::rotate(int &x, int &y) {
 
 Lab1VideoGenerator::Lab1VideoGenerator(): impl(new Impl) {
     noiseMaker = new Perlin3D();
+    loose_noise = new float[W*H*2*2];
+    dense_noise = new float[W*H*2*2];
+       generateNoise(loose_noise, 1);
+       generateNoise(dense_noise, 8);
 
     // init gravity
     // int w_size = W_SIZE;
@@ -120,8 +124,9 @@ void Lab1VideoGenerator::get_info(Lab1VideoInfo &info) {
 };
 
 void Lab1VideoGenerator::Generate(uint8_t *yuv) {
-    intoTheFog(yuv);
+    //intoTheFog(yuv);
     // gravitySimulation(yuv);
+    rotateAndFade(yuv);
 }
 
 void Lab1VideoGenerator::intoTheFog(uint8_t *yuv) {
