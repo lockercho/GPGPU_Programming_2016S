@@ -229,8 +229,9 @@ void Lab1VideoGenerator::rotateAndFade(uint8_t *yuv) {
     int direction = impl->t / loop % 2;
     setRotMatrix(impl->t * 24 / fps);
     for(int i=0 ; i<W*H ; i++) {
-        int x = i % W;
-        int y = i / W;
+        int ix, iy;
+        int x = ix = i % W;
+        int y = iy = i / W;
         rotate(x, y); 
         float n1 = getNoise(loose_noise, x, y);
         float n2 = getNoise(dense_noise, x, y);
@@ -252,10 +253,10 @@ void Lab1VideoGenerator::rotateAndFade(uint8_t *yuv) {
         int V = 0.500 * R - 0.419 * CG - 0.081 * B + 128;
 
         cudaMemset(yuv+i, Y, 1);
-        if(x % 2 == 0 && y %2 == 0) {
-            x /= 2;
-            y /= 2;
-            int index = y * W / 2 + x;
+        if(ix % 2 == 0 && iy %2 == 0) {
+            ix /= 2;
+            iy /= 2;
+            int index = iy * W / 2 + ix;
             cudaMemset(yuv+W*H+index, U, 1);
             cudaMemset(yuv+int(W*H *1.25)+ index, V, 1);
         }
