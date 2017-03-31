@@ -7,6 +7,6 @@
 #define W_SIZE 90
 #define H_SIZE 60
 #define FPS 3
-#define SECONDS 3
+#define SECONDS 2
 
 #endif
