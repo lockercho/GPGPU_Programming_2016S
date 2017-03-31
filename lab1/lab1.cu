@@ -265,6 +265,9 @@ void Lab1VideoGenerator::rotateAndFade(uint8_t *yuv) {
         int Y = 0.299 * R + 0.587 * CG + 0.114 * B;
         int U = - 0.169 * R -  0.331 * CG + 0.500 * B + 128;
         int V = 0.500 * R - 0.419 * CG - 0.081 * B + 128;
+        if(Y>255) Y = 255; 
+        if(U>255) U = 255; 
+        if(V>255) V = 255; 
 
         cudaMemset(yuv+i, Y, 1);
         if(ix % 2 == 0 && iy %2 == 0) {
