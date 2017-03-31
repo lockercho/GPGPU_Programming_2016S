@@ -152,7 +152,7 @@ void Lab1VideoGenerator::intoTheFog(uint8_t *yuv) {
         int V = 0.500 * R - 0.419 * CG - 0.081 * B + 128;
         cudaMemset(yuv+i, Y, 1);
     }
-    cudaMemset(yuv+W*H+W*H/2, 128, W*H/4);
+    cudaMemset(yuv+W*H+W*H/4, 128, W*H/4);
     impl->t+=5;
 }
 
