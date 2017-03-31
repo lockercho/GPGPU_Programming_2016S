@@ -239,15 +239,20 @@ void Lab1VideoGenerator::rotateAndFade(uint8_t *yuv) {
             color = (1.0 - w) * n1 + w * n2;
         else 
             color = w * n1 + (1.0 - w) * n2;
-        int r, g, b;
-        r = g = b = color * 255;
-        if(color < 0.5) {
-            b = 255;
-        }
+        color += 1.0f;
+        color *= 0.5f;
 
-        int Y = 0.299 * r + 0.587 * g + 0.114 * b;
-        int U = - 0.169 * r -  0.331 * g + 0.500 * b + 128;
-        int V = 0.500 * r - 0.419 * g - 0.081 * b + 128;
+        float R = (1.0 - color) * 255;
+        float B = (1.0 - color) * 255 + 100;
+        float CG = (1.0 - color) * 255 + 30;
+        if(CG > 255) CG = 255;
+        if(B > 255) B = 255;
+
+        //fprintf(stderr, "xyz: %f %f %f %f %f\n", x, y, z, freq, noise);
+        int Y = 0.299 * R + 0.587 * CG + 0.114 * B;
+        int U = - 0.169 * R -  0.331 * CG + 0.500 * B + 128;
+        int V = 0.500 * R - 0.419 * CG - 0.081 * B + 128;
+
         cudaMemset(yuv+i, Y, 1);
         if(x % 2 == 0 && y %2 == 0) {
             x /= 2;
