@@ -27,8 +27,8 @@ struct Lab1VideoGenerator::Impl {
 
 void Lab1VideoGenerator::generateNoise(float * noiseArr, float freq) {
     
-       int noise_width = W * 2;
-       int noise_height = H * 2;
+    int noise_width = W * 2;
+    int noise_height = H * 2;
 
     // Generate a noise value for each pixel
     float invWidth = 1.0f / float(noise_width);
@@ -94,10 +94,10 @@ void Lab1VideoGenerator::rotate(int &x, int &y) {
 
 Lab1VideoGenerator::Lab1VideoGenerator(): impl(new Impl) {
     noiseMaker = new Perlin3D();
-    loose_noise = new float[W*H*2*2*NFRAME];
-    dense_noise = new float[W*H*2*2*NFRAME];
-       generateNoise(loose_noise, 1);
-       generateNoise(dense_noise, 8);
+    // loose_noise = new float[W*H*2*2*NFRAME];
+    // dense_noise = new float[W*H*2*2*NFRAME];
+    //    generateNoise(loose_noise, 1);
+    //    generateNoise(dense_noise, 8);
 
     // init gravity
     // int w_size = W_SIZE;
@@ -236,13 +236,19 @@ void Lab1VideoGenerator::rotateAndFade(uint8_t *yuv) {
     w = w * w;
     int direction = impl->t / loop % 2;
     setRotMatrix(impl->t * 24 / fps);
+    float invWidth = 1.0 / W / 2;
+    float invHeight = 1.0 / H / 2;
+    float invZ =1.0 / NFRAME;
     for(int i=0 ; i<W*H ; i++) {
         int ix, iy;
         int x = ix = i % W;
         int y = iy = i / W;
+        int z = impl->t;
         rotate(x, y); 
-        float n1 = getNoise(loose_noise, x, y, impl->t);
-        float n2 = getNoise(dense_noise, x, y, impl->t);
+        // float n1 = getNoise(loose_noise, x, y, impl->t);
+        // float n2 = getNoise(dense_noise, x, y, impl->t);
+        float n1 = noiseMaker->getFractal(float(x)*invWidth, float(y)*invHeight, float(z)*invZ, 1);
+        float n2 = noiseMaker->getFractal(float(x)*invWidth, float(y)*invHeight, float(z)*invZ, 8);
         float color;
         if(direction == 0)
             color = (1.0 - w) * n1 + w * n2;
