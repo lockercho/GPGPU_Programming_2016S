@@ -94,8 +94,8 @@ void Lab1VideoGenerator::rotate(int &x, int &y) {
 
 Lab1VideoGenerator::Lab1VideoGenerator(): impl(new Impl) {
     noiseMaker = new Perlin3D();
-    loose_noise = new float[W*H*2*2];
-    dense_noise = new float[W*H*2*2];
+    loose_noise = new float[W*H*2*2*NFRAME];
+    dense_noise = new float[W*H*2*2*NFRAME];
        generateNoise(loose_noise, 1);
        generateNoise(dense_noise, 8);
 

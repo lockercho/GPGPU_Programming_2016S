@@ -32,7 +32,7 @@ public:
 	~Lab1VideoGenerator();
 	void get_info(Lab1VideoInfo &info);
 	void Generate(uint8_t *yuv);
-	float getNoise(float * noiseArr, int x, int y); 
+	float getNoise(float * noiseArr, int x, int y, int z); 
 	void setRotMatrix(int degree);
 	void generateNoise(float * noiseArr, float freq);
     void rotate(int &x, int &y);
