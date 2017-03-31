@@ -6,7 +6,7 @@
 #define HEIGHT 480
 #define W_SIZE 90
 #define H_SIZE 60
-#define FPS 3
-#define SECONDS 1 
+#define FPS 10
+#define SECONDS 5 
 
 #endif
