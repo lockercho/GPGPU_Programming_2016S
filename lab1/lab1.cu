@@ -152,6 +152,10 @@ void Lab1VideoGenerator::intoTheFog(uint8_t *yuv) {
         if(CG > 255) CG = 255;
         if(B > 255) B = 255;
 
+        r = int((1.0-p) * r1 + p * r2 + 0.5)
+        g = int((1.0-p) * g1 + p * g2 + 0.5)
+        b = int((1.0-p) * b1 + p * b2 + 0.5)
+
         //fprintf(stderr, "xyz: %f %f %f %f %f\n", x, y, z, freq, noise);
         int Y = 0.299 * R + 0.587 * CG + 0.114 * B;
         int U = - 0.169 * R -  0.331 * CG + 0.500 * B + 128;
@@ -235,9 +239,25 @@ void Lab1VideoGenerator::rotateAndFade(uint8_t *yuv) {
             color = (1.0 - w) * n1 + w * n2;
         else 
             color = w * n1 + (1.0 - w) * n2;
-        cudaMemset(yuv+i, color * 255, 1);
+        float p = float(impl->t) / NFRAME; 
+        int r = int((1.0-p) * r1 + p * r2 + 0.5) * 255 * color;
+        int g = int((1.0-p) * g1 + p * g2 + 0.5) * 255 * color;
+        int b = int((1.0-p) * b1 + p * b2 + 0.5) * 255 * color;
+
+        int Y = 0.299 * r + 0.587 * g + 0.114 * b;
+        int U = - 0.169 * r -  0.331 * g + 0.500 * b + 128;
+        int V = 0.500 * r - 0.419 * g - 0.081 * b + 128;
+        cudaMemset(yuv+i, Y, 1);
+        if(x % 2 == 0 && y %2 == 0) {
+            x /= 2;
+            y /= 2;
+            int index = y * W / 2 + x;
+            cudaMemset(yuv+W*H+index, U, 1);
+            cudaMemset(yuv+int(W*H *1.25)+ index, V, 1);
+        }
+        // cudaMemset(yuv+i, color * 255, 1);
     }
-    cudaMemset(yuv+W*H, 128, W*H/2);
+    // cudaMemset(yuv+W*H, 128, W*H/2);
     impl->t++;
 }
 
