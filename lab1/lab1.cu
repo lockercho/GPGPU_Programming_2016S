@@ -239,8 +239,6 @@ void Lab1VideoGenerator::rotateAndFade(uint8_t *yuv) {
             color = (1.0 - w) * n1 + w * n2;
         else 
             color = w * n1 + (1.0 - w) * n2;
-        color += 1.0f;
-        color *= 0.5f;
 
         float R = (1.0 - color) * 255;
         float B = (1.0 - color) * 255 + 100;
