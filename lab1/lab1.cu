@@ -151,11 +151,11 @@ void Lab1VideoGenerator::intoTheFog(uint8_t *yuv) {
         float CG = (1.0 - noise) * 255 + 30;
         if(CG > 255) CG = 255;
         if(B > 255) B = 255;
-
-        r = int((1.0-p) * r1 + p * r2 + 0.5)
-        g = int((1.0-p) * g1 + p * g2 + 0.5)
-        b = int((1.0-p) * b1 + p * b2 + 0.5)
-
+/*
+        int r = int((1.0-p) * r1 + p * r2 + 0.5)
+        int g = int((1.0-p) * g1 + p * g2 + 0.5)
+        int b = int((1.0-p) * b1 + p * b2 + 0.5)
+*/
         //fprintf(stderr, "xyz: %f %f %f %f %f\n", x, y, z, freq, noise);
         int Y = 0.299 * R + 0.587 * CG + 0.114 * B;
         int U = - 0.169 * R -  0.331 * CG + 0.500 * B + 128;
@@ -228,6 +228,7 @@ void Lab1VideoGenerator::rotateAndFade(uint8_t *yuv) {
     w = w * w;
     int direction = impl->t / loop % 2;
     setRotMatrix(impl->t * 24 / fps);
+    int r1 = 242, r2 = 124, g1 = 177, g2 = 162, b1 = 103, b2 = 248; 
     for(int i=0 ; i<W*H ; i++) {
         int x = i % W;
         int y = i / W;
