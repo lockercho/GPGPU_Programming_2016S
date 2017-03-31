@@ -33,40 +33,48 @@ void Lab1VideoGenerator::generateNoise(float * noiseArr, float freq) {
     // Generate a noise value for each pixel
     float invWidth = 1.0f / float(noise_width);
     float invHeight = 1.0f / float(noise_height);
+    float invZ = 1.0f / float(NFRAME);
     float noise;
     float min = 0.0f;
     float max = 0.0f;
 
-    for (int x=0; x<noise_width; ++x) for (int y=0; y<noise_height; ++y) {
+    for (int x=0; x<noise_width; ++x) {
+        for (int y=0; y<noise_height; ++y) {
+            for(int z=0; z<NFRAME; ++z) {
+                noise = noiseMaker->getFractal(float(x)*invWidth, float(y)*invHeight, float(z)*invZ, freq);
 
-    noise = noiseMaker->getFractal(float(x)*invWidth, float(y)*invHeight, 0, freq);
+                noiseArr[z*noise_width*noise_height+ y*noise_width + x] = noise;
 
-    noiseArr[y*noise_width + x] = noise;
-
-    // Keep track of minimum and maximum noise values
-    if (noise < min) min = noise;
-    if (noise > max) max = noise;
+                // Keep track of minimum and maximum noise values
+                if (noise < min) min = noise;
+                if (noise > max) max = noise;
+            }
+        }
     }
 
     // Convert noise values to pixel colour values.
     float temp = 1.0f / (max - min);
 
-    for (int x=0; x<noise_width; ++x) for (int y=0; y<noise_height; ++y) {
-
-    // "Stretch" the gaussian distribution of noise values to better fill -1 to 1 range.
-    noise = noiseArr[y*noise_width + x];
-    noise = -1.0f + 2.0f*(noise - min)*temp;
-    // Remap to RGB friendly colour values in range between 0 and 1.
-    noise += 1.0f;
-    noise *= 0.5f;
-    noiseArr[y*noise_width + x] = noise;
+    for (int x=0; x<noise_width; ++x) {
+        for (int y=0; y<noise_height; ++y) {
+            for(int z=0; z<NFRAME; ++z) {
+                // "Stretch" the gaussian distribution of noise values to better fill -1 to 1 range.
+                noise = noiseArr[z*noise_width*noise_height + y*noise_width + x];
+                noise = -1.0f + 2.0f*(noise - min)*temp;
+                // Remap to RGB friendly colour values in range between 0 and 1.
+                noise += 1.0f;
+                noise *= 0.5f;
+                noiseArr[z*noise_width*noise_height + y*noise_width + x] = noise;
+            }
+        }
     }
 }
 
 
-float Lab1VideoGenerator::getNoise(float * noiseArr, int x, int y) {
+float Lab1VideoGenerator::getNoise(float * noiseArr, int x, int y, int z) {
     int noise_width = W * 2;
-    return noiseArr[(y + H /2 ) * noise_width + (x + W / 2 )];
+    int noise_height = H * 2;
+    return noiseArr[z * noise_width * noise_height + (y + H /2 ) * noise_width + (x + W / 2 )];
 }
 
 void Lab1VideoGenerator::setRotMatrix(int degree) {
@@ -233,8 +241,8 @@ void Lab1VideoGenerator::rotateAndFade(uint8_t *yuv) {
         int x = ix = i % W;
         int y = iy = i / W;
         rotate(x, y); 
-        float n1 = getNoise(loose_noise, x, y);
-        float n2 = getNoise(dense_noise, x, y);
+        float n1 = getNoise(loose_noise, x, y, impl->t);
+        float n2 = getNoise(dense_noise, x, y, impl->t);
         float color;
         if(direction == 0)
             color = (1.0 - w) * n1 + w * n2;
