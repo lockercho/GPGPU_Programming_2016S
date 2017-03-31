@@ -128,9 +128,9 @@ void Lab1VideoGenerator::intoTheFog(uint8_t *yuv) {
     // rotate and fade transition
     int loop = fps * 2;  
     float w = float(impl->t % loop) / loop;
-    // w = w * w;
+    w = w * w;
     int direction = impl->t / loop % 2;
-    // setRotMatrix(impl->t * 24 / fps);
+    setRotMatrix(impl->t * 24 / fps);
     float z = float(impl-> t % W) / W;
     for(int i=0 ; i<W*H ; i++) {
         int ix = i % W;
@@ -151,8 +151,14 @@ void Lab1VideoGenerator::intoTheFog(uint8_t *yuv) {
         int U = - 0.169 * R -  0.331 * CG + 0.500 * B + 128;
         int V = 0.500 * R - 0.419 * CG - 0.081 * B + 128;
         cudaMemset(yuv+i, Y, 1);
+        if(ix % 2 == 0 && iy %2 == 0) {
+            ix /= 2;
+            iy /= 2;
+            int index = iy * W / 2 + ix;
+            cudaMemset(yuv+W*H+index, U, 1);
+            cudaMemset(yuv+int(W*H *1.25)+ index, V, 1);
+        }
     }
-    cudaMemset(yuv+W*H+W*H/4, 128, W*H/4);
     impl->t+=5;
 }
 

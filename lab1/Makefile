@@ -14,9 +14,9 @@ gravity:
 run:
 	./lab1
 	$(FFMPEG) -i result.y4m -y -r 24 output.mp4
-	git add output.mp4
+	git add .
 	git commit -m "run"
-	git push
+	git push origin master
 
 clean:
 	rm lab1
