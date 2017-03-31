@@ -256,9 +256,9 @@ void Lab1VideoGenerator::rotateAndFade(uint8_t *yuv) {
             cudaMemset(yuv+W*H+index, U, 1);
             cudaMemset(yuv+int(W*H *1.25)+ index, V, 1);
         }
-        // cudaMemset(yuv+i, color * 255, 1);
+        cudaMemset(yuv+i, color * 255, 1);
     }
-    // cudaMemset(yuv+W*H, 128, W*H/2);
+    cudaMemset(yuv+W*H, 128, W*H/2);
     impl->t++;
 }
 
