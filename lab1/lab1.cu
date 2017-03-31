@@ -133,8 +133,10 @@ void Lab1VideoGenerator::intoTheFog(uint8_t *yuv) {
     // setRotMatrix(impl->t * 24 / fps);
     float z = float(impl-> t % W) / W;
     for(int i=0 ; i<W*H ; i++) {
-        float x = float(i % W) / W;
-        float y = float(i / W) / H;
+        int ix = i % W;
+        int iy = i / W;
+        float x = float(ix) / W;
+        float y = float(iy) / H;
         float noise = noiseMaker->getFractal(x, y, z, freq);
         noise += 1.0f;
         noise *= 0.5f;
@@ -149,9 +151,11 @@ void Lab1VideoGenerator::intoTheFog(uint8_t *yuv) {
         int U = - 0.169 * R -  0.331 * CG + 0.500 * B + 128;
         int V = 0.500 * R - 0.419 * CG - 0.081 * B + 128;
         cudaMemset(yuv+i, Y, 1);
-        if((i%W) % 2 == 0 && (i/W) % 2 == 0) {
-            cudaMemset(yuv+W*H+i/2, U, 1);
-            cudaMemset(yuv+W*H+i/2, V, 1);
+        if(ix % 2 == 0) {
+            cudaMemset(yuv + W*H + ix/2, U, 1);
+        }
+        if(iy % 2 == 0) {
+            cudaMemset(yuv + W*H *1.5 + iy/2, U, 1);
         }
     }
     // cudaMemset(yuv+W*H, 128, W*H/2);
