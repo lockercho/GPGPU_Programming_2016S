@@ -45,23 +45,25 @@ __global__ void sequence(int * start, int * end) {
 	}
 }
 
-void CountPosition2(const char *text, int *pos, int text_size)
-{
-	fill<<<1,1>>>(pos, text_size, 0);
-	
-	for(std::string::iterator it = str.begin() ; it != str.end() ; ++it) {
-		std::cerr << begin << " " << end << std::endl;
-		if(*it != ' ') {
+__global void iterateIt(const char * text, int pos, int text_size) {
+	for(int i=0 ; i< text_size ; i++) {
+		if(text[i] != '\n') {
             end++;
         } else {
             if(begin != end) {
             	sequence<<<1,1>>>(pos+begin, pos+end);
             } 
             begin = end = end+1;
-        }   
+        }
 	}
 	if(begin != end) {
 		sequence<<<1,1>>>(pos+begin, pos+end);
 	}
+}
+
+void CountPosition2(const char *text, int *pos, int text_size)
+{
+	fill<<<1,1>>>(pos, text_size, 0);
+	iterateIt<<<1,>>>(text, pos, text_size);
 }
 
