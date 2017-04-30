@@ -17,24 +17,51 @@ void CountPosition1(const char *text, int *pos, int text_size)
     std::cerr << "textsize: " << text_size << std::endl;
     // wrap with a device_ptr 
     thrust::device_ptr<int> dev_ptr(pos);
-    thrust::device_ptr<const char> txt_ptr = thrust::device_pointer_cast(text);
-//    thrust::fill(dev_ptr, dev_ptr + text_size, (int) 0);
+    thrust::device_ptr<const char> txt_ptr(text);
     
     int begin =0, end = 0;
     for(int i=0 ; i < text_size ; i++) {
         if(txt_ptr[i] != '\n') {
             end++;
         } else {
-            if(begin != end) 
-                thrust::sequence(dev_ptr + begin, dev_ptr + end, 1);
+            if(begin != end) thrust::sequence(dev_ptr + begin, dev_ptr + end, 1);
             begin = end = end+1;
         }
     }
     if(begin != end) thrust::sequence(dev_ptr + begin, dev_ptr + end, 1);
-    pos = thrust::raw_pointer_cast(dev_ptr);
+}
+
+__global__ void fill(int * pos, int size, int val) {
+	for(int i=0 ; i < size ; i++) {
+		pos[i] = val;
+	}
+}
+
+__global__ void sequence(int * start, int * end) {
+	int i = 0;
+	int count = end - start;
+	for(int i=0 ; i<count ; i++) {
+		*(start + i) = i + 1;
+	}
 }
 
 void CountPosition2(const char *text, int *pos, int text_size)
 {
+	fill<<<1,1>>>(pos, text_size, 0);
+	
+	for(std::string::iterator it = str.begin() ; it != str.end() ; ++it) {
+		std::cerr << begin << " " << end << std::endl;
+		if(*it != ' ') {
+            end++;
+        } else {
+            if(begin != end) {
+            	sequence<<<1,1>>>(pos+begin, pos+end);
+            } 
+            begin = end = end+1;
+        }   
+	}
+	if(begin != end) {
+		sequence<<<1,1>>>(pos+begin, pos+end);
+	}
 }
 
