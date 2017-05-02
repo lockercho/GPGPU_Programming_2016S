@@ -18,7 +18,7 @@ void CountPosition1(const char *text, int *pos, int text_size)
     // wrap with a device_ptr 
     thrust::device_ptr<int> dev_ptr(pos);
     thrust::device_ptr<const char> txt_ptr(text);
-    
+
     int begin =0, end = 0;
     for(int i=0 ; i < text_size ; i++) {
         if(txt_ptr[i] != '\n') {
@@ -32,38 +32,42 @@ void CountPosition1(const char *text, int *pos, int text_size)
 }
 
 __global__ void fill(int * pos, int size, int val) {
-	for(int i=0 ; i < size ; i++) {
-		pos[i] = val;
-	}
+    for(int i=0 ; i < size ; i++) {
+        pos[i] = val;
+    }
 }
 
 __global__ void sequence(int * start, int * end) {
-	int i = 0;
-	int count = end - start;
-	for(int i=0 ; i<count ; i++) {
-		*(start + i) = i + 1;
-	}
+    int count = end - start;
+    for(int i=0 ; i<count ; i++) {
+        *(start + i) = i + 1;
+    }
 }
 
-__global void iterateIt(const char * text, int pos, int text_size) {
-	for(int i=0 ; i< text_size ; i++) {
-		if(text[i] != '\n') {
+__global__ void iterateIt(const char * text, int * pos, int text_size) {
+    int begin =0, end = 0;
+    for(int i=0 ; i< text_size ; i++) {
+        if(text[i] != '\n') {
             end++;
         } else {
             if(begin != end) {
-            	sequence<<<1,1>>>(pos+begin, pos+end);
+                for(int i=begin ; i<end ; i++) {
+                    *(pos + i) = i - begin + 1;
+                }
             } 
             begin = end = end+1;
         }
-	}
-	if(begin != end) {
-		sequence<<<1,1>>>(pos+begin, pos+end);
-	}
+    }
+    if(begin != end) {
+        for(int i=begin ; i<end ; i++) {
+            *(pos + i) = i - begin + 1;
+        }
+    }
 }
 
 void CountPosition2(const char *text, int *pos, int text_size)
 {
-	fill<<<1,1>>>(pos, text_size, 0);
-	iterateIt<<<1,>>>(text, pos, text_size);
+    fill<<<1,1>>>(pos, text_size, 0);
+    iterateIt<<<1,1>>>(text, pos, text_size);
 }
 
