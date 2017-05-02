@@ -31,25 +31,25 @@ void CountPosition1(const char *text, int *pos, int text_size)
     if(begin != end) thrust::sequence(dev_ptr + begin, dev_ptr + end, 1);
 }
 
-__global__ void initData(const char * text, int * start, int * end, int * nWords) {
-	int begin =0, end = 0;
-	int index = 0;
+__global__ void initData(const char * text, int *gStart, int * gEnd, int text_size, int * nWords) {
+    int begin =0, end = 0;
+    int index = 0;
     for(int i=0 ; i< text_size ; i++) {
         if(text[i] != '\n') {
             end++;
         } else {
             if(begin != end) {
-               	start[index] = begin;
-               	end[index] = begin;
-               	index++;
+                gStart[index] = begin;
+                gEnd[index] = begin;
+                index++;
             } 
             begin = end = end+1;
         }
     }
     if(begin != end) {
-        start[index] = begin;
-       	end[index] = begin;  	
-       	index++;
+        gStart[index] = begin;
+        gEnd[index] = begin;     
+        index++;
     }
     *nWords = index;
 }
@@ -67,31 +67,36 @@ __global__ void sequence(int * start, int * end) {
     }
 }
 
-__global__ void iterateIt(const char * text, int * pos, int * start, int * end, int text_size) {
-	int idx = blockIdx.x * blockDim.x + threadIdx.x;
-	int s = start[idx];
-	int e = end[idx];	
+__global__ void iterateIt(const char * text, int * pos, int * start, int * end, int nWords) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if(idx < nWords) {
+        int s = start[idx];
+        int e = end[idx];   
 
-    for(int i=s ; i<e ; i++) {
-        *(pos + i) = i - s + 1;
+        for(int i=s ; i<e ; i++) {
+            *(pos + i) = i - s + 1;
+        }
     }
 }
 
 void CountPosition2(const char *text, int *pos, int text_size)
 {
-	int * start;
-	int * end;
-	int * nWords;
-	// cudaMalloc a device array
-  	cudaMalloc((void**)&start, text_size); 
-  	cudaMalloc((void**)&end, text_size); 
+    int * start;
+    int * end;
+    int * nWords;
 
-  	int blockSize = 8;
-	int nBlock = nWords / blockSize + (nWords % blockSize == 0 ? 0: 1);
+  	cudaMalloc(&nWords, sizeof(int));
+    // cudaMalloc a device array
+    cudaMalloc((void**)&start, text_size); 
+    cudaMalloc((void**)&end, text_size); 
 
-  	initData<<<1,1>>>(text, start, end, nWords);
-	
+	initData<<<1,1>>>(text, start, end, text_size, nWords);
+    
+    int blockSize = 8;
+    int nBlock = nWords / blockSize + (nWords % blockSize == 0 ? 0: 1);
+
     fill<<<1,1>>>(pos, text_size, 0);
-    iterateIt<<<nBlock, blockSize>>>(text, pos, start, end, text_size);
+    iterateIt<<<nBlock, blockSize>>>(text, pos, start, end, nWords);
 }
+
 
