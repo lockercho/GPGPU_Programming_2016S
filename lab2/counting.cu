@@ -31,6 +31,29 @@ void CountPosition1(const char *text, int *pos, int text_size)
     if(begin != end) thrust::sequence(dev_ptr + begin, dev_ptr + end, 1);
 }
 
+__global__ void initData(const char * text, int * start, int * end, int * nWords) {
+	int begin =0, end = 0;
+	int index = 0;
+    for(int i=0 ; i< text_size ; i++) {
+        if(text[i] != '\n') {
+            end++;
+        } else {
+            if(begin != end) {
+               	start[index] = begin;
+               	end[index] = begin;
+               	index++;
+            } 
+            begin = end = end+1;
+        }
+    }
+    if(begin != end) {
+        start[index] = begin;
+       	end[index] = begin;  	
+       	index++;
+    }
+    *nWords = index;
+}
+
 __global__ void fill(int * pos, int size, int val) {
     for(int i=0 ; i < size ; i++) {
         pos[i] = val;
@@ -44,30 +67,31 @@ __global__ void sequence(int * start, int * end) {
     }
 }
 
-__global__ void iterateIt(const char * text, int * pos, int text_size) {
-    int begin =0, end = 0;
-    for(int i=0 ; i< text_size ; i++) {
-        if(text[i] != '\n') {
-            end++;
-        } else {
-            if(begin != end) {
-                for(int i=begin ; i<end ; i++) {
-                    *(pos + i) = i - begin + 1;
-                }
-            } 
-            begin = end = end+1;
-        }
-    }
-    if(begin != end) {
-        for(int i=begin ; i<end ; i++) {
-            *(pos + i) = i - begin + 1;
-        }
+__global__ void iterateIt(const char * text, int * pos, int * start, int * end, int text_size) {
+	int idx = blockIdx.x * blockDim.x + threadIdx.x;
+	int s = start[idx];
+	int e = end[idx];	
+
+    for(int i=s ; i<e ; i++) {
+        *(pos + i) = i - s + 1;
     }
 }
 
 void CountPosition2(const char *text, int *pos, int text_size)
 {
+	int * start;
+	int * end;
+	int * nWords;
+	// cudaMalloc a device array
+  	cudaMalloc((void**)&start, text_size); 
+  	cudaMalloc((void**)&end, text_size); 
+
+  	int blockSize = 8;
+	int nBlock = nWords / blockSize + (nWords % blockSize == 0 ? 0: 1);
+
+  	initData<<<1,1>>>(text, start, end, nWords);
+	
     fill<<<1,1>>>(pos, text_size, 0);
-    iterateIt<<<1,1>>>(text, pos, text_size);
+    iterateIt<<<nBlock, blockSize>>>(text, pos, start, end, text_size);
 }
 
