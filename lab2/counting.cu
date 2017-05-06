@@ -14,7 +14,6 @@ __device__ __host__ int CeilAlign(int a, int b) { return CeilDiv(a, b) * b; }
 
 void CountPosition1(const char *text, int *pos, int text_size)
 {
-    std::cerr << "textsize: " << text_size << std::endl;
     // wrap with a device_ptr 
     thrust::device_ptr<int> dev_ptr(pos);
     thrust::device_ptr<const char> txt_ptr(text);
@@ -100,11 +99,6 @@ void CountPosition2(const char *text, int *pos, int text_size)
     cudaMemcpy(hstart, start, sizeof(int)*hnWords, cudaMemcpyDeviceToHost);
     hend = (int*) malloc(sizeof(int)*hnWords);
     cudaMemcpy(hend, end, sizeof(int)*hnWords, cudaMemcpyDeviceToHost);
-/*
-    for(int i=0 ; i<hnWords ; i++) {
-        fprintf(stderr, "%d, %d\n", hstart[i], hend[i]);
-    }
-*/
     
     int blockSize = 8;
     int nBlock = hnWords / blockSize + (hnWords % blockSize == 0 ? 0 : 1);
