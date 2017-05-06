@@ -40,7 +40,7 @@ __global__ void initData(const char * text, int *gStart, int * gEnd, int text_si
         } else {
             if(begin != end) {
                 gStart[index] = begin;
-                gEnd[index] = begin;
+                gEnd[index] = end;
                 index++;
             } 
             begin = end = end+1;
@@ -48,7 +48,7 @@ __global__ void initData(const char * text, int *gStart, int * gEnd, int text_si
     }
     if(begin != end) {
         gStart[index] = begin;
-        gEnd[index] = begin;     
+        gEnd[index] = end;     
         index++;
     }
     *nWords = index;
@@ -67,9 +67,9 @@ __global__ void sequence(int * start, int * end) {
     }
 }
 
-__global__ void iterateIt(const char * text, int * pos, int * start, int * end, int nWords) {
+__global__ void iterateIt(const char * text, int * pos, int * start, int * end, int * nWords) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if(idx < nWords) {
+    if(idx < *nWords) {
         int s = start[idx];
         int e = end[idx];   
 
@@ -84,6 +84,8 @@ void CountPosition2(const char *text, int *pos, int text_size)
     int * start;
     int * end;
     int * nWords;
+    int hnWords;
+    int * hstart, *hend;
 
   	cudaMalloc(&nWords, sizeof(int));
     // cudaMalloc a device array
@@ -91,12 +93,25 @@ void CountPosition2(const char *text, int *pos, int text_size)
     cudaMalloc((void**)&end, text_size); 
 
 	initData<<<1,1>>>(text, start, end, text_size, nWords);
+
+    cudaMemcpy(&hnWords, nWords, sizeof(int), cudaMemcpyDeviceToHost);
+
+    hstart = (int*) malloc(sizeof(int)*hnWords);
+    cudaMemcpy(hstart, start, sizeof(int)*hnWords, cudaMemcpyDeviceToHost);
+    hend = (int*) malloc(sizeof(int)*hnWords);
+    cudaMemcpy(hend, end, sizeof(int)*hnWords, cudaMemcpyDeviceToHost);
+/*
+    for(int i=0 ; i<hnWords ; i++) {
+        fprintf(stderr, "%d, %d\n", hstart[i], hend[i]);
+    }
+*/
     
     int blockSize = 8;
-    int nBlock = nWords / blockSize + (nWords % blockSize == 0 ? 0: 1);
+    int nBlock = hnWords / blockSize + (hnWords % blockSize == 0 ? 0 : 1);
 
     fill<<<1,1>>>(pos, text_size, 0);
     iterateIt<<<nBlock, blockSize>>>(text, pos, start, end, nWords);
+
 }
 
 

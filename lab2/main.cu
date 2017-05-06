@@ -72,6 +72,7 @@ void TestRoutine(
 	// Run
 	timer_count_position.Start();
 	if (part == 1) {
+    return;
 		CountPosition1(text_sync.get_gpu_ro(), yours_gpu, n);
 	} else {
 		CountPosition2(text_sync.get_gpu_ro(), yours_gpu, n);
@@ -81,6 +82,10 @@ void TestRoutine(
 
 	// Part I check
 	const int *yours = yours_sync.get_cpu_ro();
+    /*
+    for(int i=0 ;i<n ; i++) {
+        fprintf(stderr, "[%d] %d, %d\n", i, golden[i], yours[i]);
+    }*/
 	int n_match = mismatch(golden, golden+n, yours).first - golden;
 
 	printf_timer(timer_count_position);
@@ -96,6 +101,7 @@ int main(int argc, char **argv)
 	// Initialize random text
 	default_random_engine engine(12345);
 	auto text_pos_head = GenerateTestCase(engine, 40000000); // 40 MB data
+	//auto text_pos_head = GenerateTestCase(engine, 1000); // 40 MB data
 	vector<char> &text = get<0>(text_pos_head);
 	vector<int> &pos = get<1>(text_pos_head);
 
