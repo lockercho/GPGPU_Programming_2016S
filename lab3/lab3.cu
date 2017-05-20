@@ -28,7 +28,8 @@ __global__ void SimpleClone(
 }
 
 __global__ void PoissonImageCloningIteration(
-        float * source , float * target, const float* mask, const float * border, 
+		float * fixed, float * target ,
+        const float* mask, const float * border, 
         float * guess_prev, float * guess_next, 
         const int wt, const int ht) {
 
@@ -48,12 +49,12 @@ __global__ void PoissonImageCloningIteration(
                     if(neighbor < 0 || neighbor >= 3 * ht * wt) {
                         continue;
                     }
-                    if(border[b_neighbor] == 255) {
-                        sum1 += target[neighbor];
+                    if(border[b_neighbor] == 1) {
+                        sum1 += dest[neighbor];
                     } else {
                         sum1 += guess_prev[neighbor];
                     }
-                    sum2 += source[p] - source[neighbor];
+                    sum2 += target[p] - target[neighbor];
                 }
                 float newVal = (sum1 + sum2) / 4.f;
 
@@ -65,34 +66,38 @@ __global__ void PoissonImageCloningIteration(
 }
 
 __global__ void CalculateFixed(
+		float * fixed, const float * background,
         const float * mask, float * border,
-        float * guess_prev, float * guess_next;
         const int wb, const int hb,
         const int wt, const int ht, 
         const int oy, const int ox) {
 
+	// set border & initial guess
     for(int i=0 ; i<ht ; i++) {
-        for(int j=0; j<wt ; j++) {       
+        for(int j=0; j<wt ; j++) {
+        	for(int c=0 ;c<3 ;c++) {
+        		fixed[i*3*wt+j+c] = background[(i+oy)*3*wt+(j+ox)+c]; 
+        	}
             // check is interior
             bool is_interior = true;
             // check top
             if(i-1 < 0 || mask[(i-1)*wt+j] != 255) {
-                border[i*wt+j] = 255;
+                border[i*wt+j] = 1;
                 continue;
             }
             // check bottom
             if(is_interior && (i+1 >= ht || mask[(i+1)*wt+j] != 255)) {
-                border[i*wt+j] = 255;
+                border[i*wt+j] = 1;
                 continue;
             }
             // check left
             if(is_interior && (j-1 < 0 || mask[(i)*wt + j-1] != 255)) {
-                border[i*wt+j] = 255;
+                border[i*wt+j] = 1;
                 continue;
             }
             // check right
             if(is_interior && (j+1 >= wt || mask[i*wt+j+1] != 255)) {
-                border[i*wt+j] = 255;
+                border[i*wt+j] = 1;
                 continue;
             }
         }
@@ -110,28 +115,31 @@ void PoissonImageCloning(
     fprintf(stderr, "wb: %d hb: %d, wt: %d, ht: %d, oy: %d, ox: %d\n", wb,hb,wt,ht,oy,ox);
 
     // set up
-    float *fixed, *buf1, *buf2;
-    float * guess_prev, * guess_next;
+    float *fixed, *guess_prev, *guess_next, *border;
     cudaMalloc(&fixed, 3*wt*ht*sizeof(float));
-    cudaMalloc(&buf1, 3*wt*ht*sizeof(float));
-    cudaMalloc(&buf2, 3*wt*ht*sizeof(float));
     cudaMalloc(&guess_prev, 3*wt*ht*sizeof(float));
     cudaMalloc(&guess_next, 3*wt*ht*sizeof(float));
+    cudaMalloc(&border, wt*ht*sizeof(int));
     // initialize the iteration
     dim3 gdim(CeilDiv(wt,32), CeilDiv(ht,16)), bdim(32,16);
-    CalculateFixed<<<gdim, bdim>>>(background, target, mask, fixed,wb, hb, wt, ht, oy, ox);
-    cudaMemcpy(buf1, target, sizeof(float)*3*wt*ht, cudaMemcpyDeviceToDevice);
+    CalculateFixed<<<gdim, bdim>>>(fixed, background, mask, border, wb, hb, wt, ht, oy, ox);
+    cudaMemcpy(guess_prev, target, sizeof(float)*3*wt*ht, cudaMemcpyDeviceToDevice);
+    cudaMemcpy(guess_next, target, sizeof(float)*3*wt*ht, cudaMemcpyDeviceToDevice);
     // iterate
     for(int i=0;i<10000;++i) { 
-        PoissonImageCloningIteration<<<gdim, bdim>>>(fixed, mask, buf1, buf2, wt, ht);
-        PoissonImageCloningIteration<<<gdim, bdim>>>(fixed, mask, buf2, buf1, wt, ht); 
+        PoissonImageCloningIteration<<<gdim, bdim>>>(
+        	fixed, target, mask, border, 
+        	guess_prev, guess_next, wt, ht);
+        // use last next as new prev
+        PoissonImageCloningIteration<<<gdim, bdim>>>(
+        	fixed, target, mask, border, 
+        	guess_next, guess_prev, wt, ht);
     }
     // copy the image back
     cudaMemcpy(output, background, wb*hb*sizeof(float)*3, cudaMemcpyDeviceToDevice);
     SimpleClone<<<gdim, bdim>>>(
-            background, buf1, mask, output,
-            wb, hb, wt, ht, oy, ox
-            );
+        background, guess_next, mask, output,
+        wb, hb, wt, ht, oy, ox);
     // clean up
     cudaFree(fixed);
     cudaFree(buf1);
